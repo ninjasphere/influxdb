@@ -494,7 +494,7 @@ func (h *Handler) serveWriteLine(w http.ResponseWriter, r *http.Request, body []
 }
 
 // serveOptions returns an empty response to comply with OPTIONS pre-flight requests
-func (h *Handler) serveOptions(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) serveOptions(w http.ResponseWriter, r *http.Request, user *meta.UserInfo) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
@@ -639,6 +639,9 @@ func authenticate(inner func(http.ResponseWriter, *http.Request, *meta.UserInfo)
 				return
 			}
 		}
+		if r.Method == "OPTIONS" {
+			return
+		}
 		inner(w, r, user)
 	})
 }
@@ -703,10 +706,6 @@ func cors(inner http.Handler) http.Handler {
 				`X-CSRF-Token`,
 				`X-HTTP-Method-Override`,
 			}, ", "))
-		}
-
-		if r.Method == "OPTIONS" {
-			return
 		}
 
 		inner.ServeHTTP(w, r)
